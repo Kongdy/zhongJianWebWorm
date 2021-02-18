@@ -3,6 +3,7 @@ import base64
 from Cryptodome.Cipher import AES
 from Cryptodome import Random
 
+
 def encrypt(data, password):
     bs = AES.block_size
     pad = lambda s: s + (bs - len(s) % bs) * chr(bs - len(s) % bs)
@@ -27,6 +28,15 @@ def decrypt(data, password):
     return (data)
 
 
+key = b'1234567812345678'
+
+
+def get_enc(data):
+    encrypt_data = encrypt(data, key)
+    encrypt_data = base64.b64encode(encrypt_data)
+    return encrypt_data.decode('utf-8')
+
+
 # if __name__ == '__main__':
 #     data = 'd437814d9185a290af20514d9341b710'
 #     password = '78f40f2c57eee727a4be179049cecf89'  # 16,24,32位长的密码
@@ -37,11 +47,4 @@ def decrypt(data, password):
 #     encrypt_data = base64.b64decode(encrypt_data)
 #     decrypt_data = decrypt(encrypt_data, password)
 #     print('decrypt_data:', decrypt_data)
-
-key = b'1234567812345678'
-data = '15002930174'
-
-encrypt_data = encrypt(data, key)
-encrypt_data = base64.b64encode(encrypt_data)
-print('encrypt_data:', str(encrypt_data))
 
