@@ -20,6 +20,9 @@ LOGIN_GUO_FENG_USER_PASSWORD = '123456'
 
 login_params = '{"userName":"'+AESCrypto.get_enc(LOGIN_GUO_FENG_USER_ACCOUNT)+'","password":"'+AESCrypto.get_enc(LOGIN_GUO_FENG_USER_PASSWORD)+'","isAutoLogin":"false","validateCode":"","fromUrl":""}'
 
+global session
+clickUrlsPattern = re.compile(r'[(](.*?)[)]', re.S)
+
 # strHtml = requests.get(LOGIN_URL)
 # print(strHtml.text)
 
@@ -42,6 +45,22 @@ def do_get(url, need_reset_head=False):
     return session.get(url, headers=head)
 
 
+def handle_package(current_index, plan_list):
+    if current_index < len(plan_list):
+        url_tag = plan_list[current_index]
+        if isinstance(url_tag, Tag):
+            package_url = str(url_tag.get('onclick')).replace('"', "")
+            pattern_result = re.findall(clickUrlsPattern, package_url)
+            if pattern_result:
+                url = pattern_result[0]
+                package_page_result = do_get(url)
+                package_page_soup = BeautifulSoup(package_page_result.text, 'lxml')
+                video_list = package_page_soup.findAll(name='div', attrs={"class": "normalrow clearfix"})
+
+
+
+
+
 # 设置头信息
 headers_base = {
     'Accept': 'application/json, text/javascript, */*; q=0.01',
@@ -54,7 +73,8 @@ headers_base = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.182 Safari/537.36',
     'Referer': 'http://shizhijiaoyu.net/login.htm',
 }
-global session
+# session = HTMLSession()
+# session.response_hook(clickResult).html.
 # session = requests.session()
 # response = session.post(LOGIN_URL, headers=headers_base, data=login_params)
 # content = json.loads(response.text)
@@ -78,16 +98,14 @@ if status == '0':
             for lesson in lessons:
                 if isinstance(lesson, Tag):
                     onClick = str(lesson.get('onclick')).replace('"', "")
-                    clickUrlsPattern = re.compile(r'[(](.*?)[)]', re.S)
                     patternResult = re.findall(clickUrlsPattern, onClick)
                     if patternResult:
                         clickUrl = BASE_URL+patternResult[0]
                         clickResult = do_get(clickUrl)
-                        print(clickResult)
+                        planDetailSoup = BeautifulSoup(clickResult.text, 'lxml')
+                        planList = planDetailSoup.findAll(name='tr', attrs={"class": "hand"})
+                        handle_package(0, planList)
 
-
-        # planListContainerSoup = BeautifulSoup(planListContainer, 'lxml')
-        # childrenList = planListContainerSoup.children
 
     # cookie.set()
 else:
